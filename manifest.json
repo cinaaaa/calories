@@ -1,0 +1,11 @@
+{
+  "name": "Calories",
+  "short_name": "Calories",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ececdf",
+  "theme_color": "#e85d04",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

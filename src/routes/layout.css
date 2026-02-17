@@ -1,1 +1,55 @@
 @import 'tailwindcss';
+
+@font-face {
+	font-family: 'Google Sans';
+	src: url('/gsans.ttf') format('truetype');
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* Mockup design tokens */
+:root {
+	--color-bg: #F5F4EC;
+	--color-accent: #E85D04;
+	--color-accent-hover: #CF5304;
+	--color-text: #1a1a1a;
+	--color-text-muted: #4a4a4a;
+	--color-inverse: #ffffff;
+	--color-card-dark:rgb(74, 74, 74);
+	--color-card-orange: #E85D04;
+	--radius-card: 1rem;
+	--radius-button: 50%;
+	--font-sans: 'Google Sans', system-ui, -apple-system, sans-serif;
+	--font-size-hero: 3.75rem;
+	--font-size-hero-unit: 1.125rem;
+	--font-size-title: 1.25rem;
+	--font-size-body: 0.9375rem;
+	--font-size-small: 0.8125rem;
+	--font-weight-normal: 400;
+	--font-weight-bold: 700;
+	--space-page: 1rem;
+	--space-section: 1.5rem;
+}
+
+/* Mobile-first base layout */
+body {
+	background-color: var(--color-bg);
+	color: var(--color-text);
+	font-family: var(--font-sans);
+	font-size: var(--font-size-body);
+	-webkit-font-smoothing: antialiased;
+	min-height: 100vh;
+	max-width: 500px;
+	margin: 0 auto;
+}
+
+.dashboard {
+	max-width: 100%;
+	min-height: 100vh;
+	padding: var(--space-page);
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-section);
+}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Calorie &amp; Protein</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <main class="dashboard">
+      <header class="dashboard-header">
+        <h1>Today</h1>
+        <p class="date" id="today-date"></p>
+      </header>
+      <section class="totals">
+        <div class="total" id="total-calories">0 <span class="unit">cal</span></div>
+        <div class="total" id="total-protein">0 <span class="unit">g protein</span></div>
+      </section>
+      <section class="entries" id="entries-list" aria-label="Today's entries">
+        <!-- entries rendered by JS -->
+      </section>
+    </main>
+    <button type="button" class="fab" id="fab-add" aria-label="Add entry">+</button>
+    <div class="modal-overlay hidden" id="modal-overlay" aria-hidden="true">
+      <div class="modal" role="dialog" aria-labelledby="modal-title" aria-modal="true">
+        <h2 id="modal-title">Add entry</h2>
+        <form id="add-entry-form">
+          <label for="input-calories">Calories</label>
+          <input type="number" id="input-calories" name="calories" min="1" required />
+          <label for="input-protein">Protein (g)</label>
+          <input type="number" id="input-protein" name="protein" min="0" />
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" id="btn-cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary">Add</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
