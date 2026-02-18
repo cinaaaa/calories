@@ -165,7 +165,8 @@
 		padding: 0.5rem;
 		border: 1px solid #ccc;
 		border-radius: 6px;
-		font-size: var(--font-size-body);
+		/* min 16px prevents iOS Safari from auto-zooming on focus */
+		font-size: max(16px, var(--font-size-body));
 	}
 	.migrate-section {
 		padding-top: 0.5rem;
