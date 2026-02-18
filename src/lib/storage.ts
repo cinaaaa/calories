@@ -8,12 +8,14 @@ export type Settings = {
 	dailyAllowance: number;
 	currentWeight: number | null;
 	previousWeight: number | null;
+	proteinGoal: number;
 };
 
 const DEFAULT_SETTINGS: Settings = {
 	dailyAllowance: 2267,
 	currentWeight: null,
-	previousWeight: null
+	previousWeight: null,
+	proteinGoal: 160
 };
 
 function getJson<T>(key: string, fallback: T): T {
@@ -52,13 +54,22 @@ export function addEntry(date: string, entry: Entry): void {
 	setJson(INTAKE_KEY, intake);
 }
 
+export function removeEntry(date: string, index: number): void {
+	const intake = getIntake();
+	const list = intake[date] ?? [];
+	if (index < 0 || index >= list.length) return;
+	intake[date] = list.filter((_, i) => i !== index);
+	setJson(INTAKE_KEY, intake);
+}
+
 export function setIntake(intake: IntakeStore): void {
 	setJson(INTAKE_KEY, intake);
 }
 
-/** Daily allowance, current weight, previous weight */
+/** Daily allowance, current weight, previous weight, protein goal */
 export function getSettings(): Settings {
-	return getJson<Settings>(SETTINGS_KEY, DEFAULT_SETTINGS);
+	const raw = getJson<Partial<Settings>>(SETTINGS_KEY, {});
+	return { ...DEFAULT_SETTINGS, ...raw };
 }
 
 export function setSettings(settings: Partial<Settings>): void {
@@ -69,6 +80,10 @@ export function setSettings(settings: Partial<Settings>): void {
 
 export function setDailyAllowance(value: number): void {
 	setSettings({ dailyAllowance: value });
+}
+
+export function setProteinGoal(value: number): void {
+	setSettings({ proteinGoal: value });
 }
 
 export function setCurrentWeight(value: number | null): void {

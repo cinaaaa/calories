@@ -19,6 +19,13 @@ self.addEventListener('install', (event) => {
 	event.waitUntil(addFilesToCache());
 });
 
+// Message from client: activate this worker (take control and reload)
+self.addEventListener('message', (event) => {
+	if (event.data?.type === 'SKIP_WAITING') {
+		self.skipWaiting();
+	}
+});
+
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
 	async function deleteOldCaches() {

@@ -2,58 +2,61 @@
 	interface Props {
 		open: boolean;
 		dailyAllowance: number;
-		currentWeight: number | null;
+		proteinGoal: number;
 		onClose: () => void;
 		onSaveAllowance: (value: number) => void;
-		onSaveWeight: (value: number | null) => void;
-		onUpdateWeight: (value: number) => void;
-		onResetData: () => void;
+		onSaveProteinGoal: (value: number) => void;
+		onExport: () => void;
+		onImport: () => void;
 	}
 	let {
 		open,
 		dailyAllowance,
-		currentWeight,
+		proteinGoal,
 		onClose,
 		onSaveAllowance,
-		onSaveWeight,
-		onUpdateWeight,
-		onResetData
+		onSaveProteinGoal,
+		onExport,
+		onImport
 	}: Props = $props();
 
 	let allowance = $state(2267);
-	let weight = $state('');
+	let protein = $state(160);
 
 	$effect(() => {
 		if (open) {
 			allowance = dailyAllowance;
-			weight = currentWeight != null ? String(currentWeight) : '';
+			protein = proteinGoal;
 		}
 	});
+
+	const allowanceNum = $derived(Number(allowance));
+	const proteinNum = $derived(Number(protein));
+	const hasChanges = $derived(
+		(Number.isFinite(allowanceNum) && allowanceNum > 0 && allowanceNum !== dailyAllowance) ||
+			(Number.isFinite(proteinNum) && proteinNum > 0 && proteinNum !== proteinGoal)
+	);
 
 	function saveAllowance() {
 		const n = Number(allowance);
 		if (!Number.isNaN(n) && n > 0) onSaveAllowance(n);
 	}
 
-	function saveWeight() {
-		const n = parseFloat(weight);
-		if (!Number.isNaN(n) && n > 0) {
-			onUpdateWeight(n);
-		} else if (weight === '') {
-			onSaveWeight(null);
-		}
+	function saveProteinGoal() {
+		const n = Number(protein);
+		if (!Number.isNaN(n) && n > 0) onSaveProteinGoal(n);
 	}
 
 	function handleClose() {
 		saveAllowance();
-		saveWeight();
+		saveProteinGoal();
 		onClose();
 	}
 
-	function handleReset() {
-		if (!confirm('Delete all entries and reset settings? This cannot be undone.')) return;
-		onResetData();
-		handleClose();
+	function handleSave() {
+		saveAllowance();
+		saveProteinGoal();
+		onClose();
 	}
 </script>
 
@@ -76,23 +79,29 @@
 					/>
 				</label>
 				<label class="field">
-					<span class="field-label">Current weight (Kg)</span>
+					<span class="field-label">Protein goal (g)</span>
 					<input
 						type="number"
 						class="field-input"
-						step="0.01"
-						min="0"
-						placeholder="—"
-						bind:value={weight}
-						onblur={saveWeight}
+						min="1"
+						bind:value={protein}
+						onblur={saveProteinGoal}
 					/>
 				</label>
-				<p class="field-hint">Updating weight saves the previous value so the card can show change %.</p>
-				<div class="reset-section">
-					<button type="button" class="btn-reset" onclick={handleReset}>
-						Reset data
+				<div class="migrate-section">
+					<p class="migrate-label">Move data to another device</p>
+					<button type="button" class="btn-migrate" onclick={onExport}>
+						Export — Show QR to move data to another device
+					</button>
+					<button type="button" class="btn-migrate" onclick={onImport}>
+						Import — Scan QR to load data from another device
 					</button>
 				</div>
+				{#if hasChanges}
+					<button type="button" class="btn-save" onclick={handleSave}>
+						Save
+					</button>
+				{/if}
 			</div>
 		</div>
 	</div>
@@ -158,27 +167,45 @@
 		border-radius: 6px;
 		font-size: var(--font-size-body);
 	}
-	.field-hint {
+	.migrate-section {
+		padding-top: 0.5rem;
+		border-top: 1px solid rgba(0, 0, 0, 0.08);
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	.migrate-label {
 		font-size: var(--font-size-small);
 		color: var(--color-text-muted);
 		margin: 0;
 	}
-	.reset-section {
-		padding-top: 0.5rem;
-		border-top: 1px solid rgba(0, 0, 0, 0.08);
+	.btn-migrate {
+		width: 100%;
+		padding: 0.6rem 1rem;
+		font-size: var(--font-size-small);
+		color: var(--color-text);
+		background: #f0f0f0;
+		border: 1px solid rgba(0, 0, 0, 0.1);
+		border-radius: 6px;
+		cursor: pointer;
+		text-align: left;
 	}
-	.btn-reset {
+	.btn-migrate:hover {
+		background: #e5e5e5;
+	}
+	.btn-save {
 		width: 100%;
 		padding: 0.6rem 1rem;
 		font-size: var(--font-size-body);
-		color: var(--color-text);
-		background: red;
-		border: 1px solid rgba(0, 0, 0, 0.15);
+		font-weight: var(--font-weight-bold);
+		color: white;
+		background: #4caf50;
+		border: none;
 		border-radius: 6px;
 		cursor: pointer;
+		margin-top: 0.25rem;
 	}
-	.btn-reset:hover {
-		background: #e61414;
-		color: var(--color-text);
+	.btn-save:hover {
+		background: #66bb6a;
 	}
 </style>

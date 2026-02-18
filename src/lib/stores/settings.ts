@@ -3,6 +3,7 @@ import {
 	getSettings,
 	setSettings,
 	setDailyAllowance as setAllowanceStorage,
+	setProteinGoal as setProteinGoalStorage,
 	updateWeight as updateWeightStorage
 } from '$lib/storage';
 
@@ -15,6 +16,10 @@ function createSettingsStore() {
 		setDailyAllowance: (value: number) => {
 			setAllowanceStorage(value);
 			update((s) => ({ ...s, dailyAllowance: value }));
+		},
+		setProteinGoal: (value: number) => {
+			setProteinGoalStorage(value);
+			update((s) => ({ ...s, proteinGoal: value }));
 		},
 		setCurrentWeight: (value: number | null) => {
 			setSettings({ ...getSettings(), currentWeight: value });

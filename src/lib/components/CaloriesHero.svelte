@@ -3,8 +3,10 @@
 		totalCalories: number;
 		dailyAllowance: number;
 		totalProtein: number;
+		proteinGoal: number;
 	}
-	let { totalCalories, dailyAllowance, totalProtein }: Props = $props();
+	let { totalCalories, dailyAllowance, totalProtein, proteinGoal }: Props = $props();
+	const goalDisplay = $derived(proteinGoal > 0 ? proteinGoal : 160);
 </script>
 
 <div class="hero">
@@ -16,7 +18,7 @@
 		Daily allowance: <strong>{dailyAllowance}</strong>
 	</p>
 	<p class="hero-protein">
-		Protein: <strong>{totalProtein}<span class="hero-protein-goal">/160 grams</span></strong>
+		Protein: <strong>{totalProtein}<span class="hero-protein-goal">/{goalDisplay} grams</span></strong>
 	</p>
 </div>
 
