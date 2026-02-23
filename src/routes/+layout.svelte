@@ -68,7 +68,7 @@
 		const interval = setInterval(() => {
 			registration?.update();
 			checkWaiting();
-		}, 60 * 60 * 1000); // every 60 minutes
+		}, 30 * 1000); // every 30 seconds
 
 		return () => clearInterval(interval);
 	});
