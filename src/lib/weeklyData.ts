@@ -1,12 +1,5 @@
-import { getEntries } from '$lib/storage';
-import type { IntakeStore } from '$lib/storage';
-
-/** Get Monday of the week that contains the given date (local time) */
-export function getMonday(d: Date): Date {
-	const day = d.getDay();
-	const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-	return new Date(d.getFullYear(), d.getMonth(), diff);
-}
+import { getEntries } from './storage';
+import type { IntakeStore } from './storage';
 
 /** Format date as YYYY-MM-DD */
 export function toDateKey(d: Date): string {
@@ -24,28 +17,37 @@ export type DayData = {
 	isToday: boolean;
 };
 
-const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+/** Returns calendar dates for a rolling window ending on endDate. Oldest first. */
+export function getRecentDates(days: number, endDate = new Date()): Date[] {
+	const result: Date[] = [];
+	const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+	for (let offset = days - 1; offset >= 0; offset--) {
+		const d = new Date(end);
+		d.setDate(end.getDate() - offset);
+		result.push(d);
+	}
+	return result;
+}
 
-/** Compute weekly data (Mon–Sun) for the week containing today. Pass intake so derived state updates when entries change. */
+/** Compute weekly data for a rolling 7-day window ending today. */
 export function getWeeklyData(
 	dailyAllowance: number,
-	intake?: IntakeStore
+	intake?: IntakeStore,
+	endDate = new Date()
 ): DayData[] {
-	const today = new Date();
-	const monday = getMonday(today);
+	const today = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
 	const todayKey = toDateKey(today);
+	const fmt = new Intl.DateTimeFormat(undefined, { weekday: 'short' });
 	const result: DayData[] = [];
 
-	for (let i = 0; i < 7; i++) {
-		const d = new Date(monday);
-		d.setDate(monday.getDate() + i);
+	for (const d of getRecentDates(7, endDate)) {
 		const dateKey = toDateKey(d);
 		const entries = intake?.[dateKey] ?? getEntries(dateKey);
 		const calories = entries.reduce((sum, e) => sum + e.calories, 0);
 		const percentage =
 			dailyAllowance > 0 ? Math.round((calories / dailyAllowance) * 100) : 0;
 		result.push({
-			label: DAY_LABELS[i],
+			label: fmt.format(d),
 			dateKey,
 			calories,
 			percentage,

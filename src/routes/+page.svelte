@@ -9,7 +9,7 @@
 	import ImportQRModal from '$lib/components/ImportQRModal.svelte';
 	import { entriesStore } from '$lib/stores/entries';
 	import { settingsStore } from '$lib/stores/settings';
-	import { toDateKey } from '$lib/weeklyData';
+	import { getWeeklyData, toDateKey } from '$lib/weeklyData';
 	import { setIntake, setSettings } from '$lib/storage';
 	import type { MigrateData } from '$lib/migrate';
 
@@ -25,6 +25,15 @@
 	const todayEntries = $derived(intake[todayKey] ?? []);
 	const totalCalories = $derived(todayEntries.reduce((s, e) => s + e.calories, 0));
 	const totalProtein = $derived(todayEntries.reduce((s, e) => s + e.protein, 0));
+	const weeklyData = $derived(getWeeklyData(settings.dailyAllowance, intake));
+	const weeklyTotalCalories = $derived(weeklyData.reduce((s, d) => s + d.calories, 0));
+	const weeklyTargetCalories = $derived(settings.dailyAllowance * 7);
+	const hasWeeklyIntake = $derived(weeklyTotalCalories > 0);
+	const weeklyTargetPercent = $derived(
+		weeklyTargetCalories > 0 ? Math.round((weeklyTotalCalories / weeklyTargetCalories) * 100) : 0
+	);
+	const weeklyMaxCalories = $derived(Math.max(...weeklyData.map((d) => d.calories), settings.dailyAllowance, 1));
+	const kcalFormatter = new Intl.NumberFormat();
 
 	function openSettings() {
 		settingsModalOpen = true;
@@ -65,10 +74,38 @@
 	<button type="button" class="big-add" onclick={openAddEntry} aria-label="Add entry">
 		<span class="big-add-icon">+</span>
 	</button>
-	<div class="cards">
+	<!-- <div class="cards">
 		<ProteinCard protein={totalProtein} />
 		<CaloriesCard calories={totalCalories} trendPct={null} />
-	</div>
+	</div> -->
+	<section class="weekly-progress" aria-label="Last 7 days progress">
+		<div class="weekly-progress-head">
+			<p class="weekly-progress-kicker">Last 7 days</p>
+			<p class="weekly-progress-target">
+				Target: {kcalFormatter.format(weeklyTargetCalories)} kcal
+			</p>
+		</div>
+		<div class="weekly-progress-summary">
+			<p class="weekly-progress-total">{kcalFormatter.format(weeklyTotalCalories)} kcal</p>
+			<!-- <p class="weekly-progress-percent">{weeklyTargetPercent}% of weekly target</p> -->
+		</div>
+		<div class="weekly-bars" role="img" aria-label="Daily calories for the last 7 days">
+			{#each weeklyData as day}
+				<div class="weekly-bar-col">
+					<div class="weekly-bar-track">
+						<div
+							class="weekly-bar-fill"
+							style={`height:${Math.round((day.calories / weeklyMaxCalories) * 100)}%`}
+						></div>
+					</div>
+					<span class="weekly-bar-label">{day.label}</span>
+				</div>
+			{/each}
+		</div>
+		{#if !hasWeeklyIntake}
+			<p class="weekly-progress-empty">No entries in the last 7 days yet.</p>
+		{/if}
+	</section>
 	<section class="entry-list" aria-label="Today's entries">
 		<div class="entry-list-head">
 			<h2 class="entry-list-title">Today's entries</h2>
@@ -163,10 +200,92 @@
 		line-height: 1;
 		font-weight: 300;
 	}
-	.cards {
+	/* .cards {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		gap: 1rem;
+	} */
+	.weekly-progress {
+		background: #ffffff;
+		border-radius: var(--radius-card);
+		padding: 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+	.weekly-progress-head {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+	.weekly-progress-kicker {
+		margin: 0;
+		font-size: var(--font-size-small);
+		color: var(--color-text-muted);
+	}
+	.weekly-progress-target {
+		margin: 0;
+		font-size: var(--font-size-small);
+		color: var(--color-text-muted);
+	}
+	.weekly-progress-summary {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+	.weekly-progress-total {
+		margin: 0;
+		font-size: 2rem;
+		font-weight: var(--font-weight-bold);
+		color: var(--color-text);
+		line-height: 1.1;
+	}
+	.weekly-progress-percent {
+		margin: 0;
+		font-size: var(--font-size-small);
+		color: var(--color-text-muted);
+	}
+	.weekly-bars {
+		display: grid;
+		grid-template-columns: repeat(7, minmax(0, 1fr));
+		align-items: end;
+		gap: 0.5rem;
+		min-height: 8.5rem;
+	}
+	.weekly-bar-col {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	.weekly-bar-track {
+		width: 100%;
+		max-width: 1.5rem;
+		height: 6.5rem;
+		border-radius: 999px;
+		background: #dfe5de;
+		position: relative;
+		overflow: hidden;
+	}
+	.weekly-bar-fill {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		border-radius: 999px;
+		background: #85ba8e;
+		min-height: 0;
+	}
+	.weekly-bar-label {
+		font-size: var(--font-size-small);
+		color: var(--color-text-muted);
+	}
+	.weekly-progress-empty {
+		margin: 0;
+		font-size: var(--font-size-small);
+		color: var(--color-text-muted);
 	}
 	@media (max-width: 380px) {
 		.cards {

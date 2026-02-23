@@ -1,6 +1,7 @@
 import pako from 'pako';
-import type { IntakeStore, Entry, Settings } from '$lib/storage';
-import { getIntake, getSettings } from '$lib/storage';
+import type { IntakeStore, Entry, Settings } from './storage';
+import { getIntake, getSettings } from './storage';
+import { getRecentDates, toDateKey } from './weeklyData';
 
 const VERSION = 'v1:';
 const MAX_ENCODED_BYTES = 1800; // safe for one QR (~2KB payload)
@@ -16,9 +17,23 @@ export type MigrateData = {
 	settings: Settings;
 };
 
+export function filterIntakeToRecentDays(
+	intake: IntakeStore,
+	days = 7,
+	endDate = new Date()
+): IntakeStore {
+	const recentKeys = new Set(getRecentDates(days, endDate).map((d) => toDateKey(d)));
+	const filtered: IntakeStore = {};
+	for (const [date, entries] of Object.entries(intake)) {
+		if (recentKeys.has(date)) filtered[date] = entries;
+	}
+	return filtered;
+}
+
 function buildCompactPayload(intake: IntakeStore, settings: Settings): CompactPayload {
 	const i: Record<string, [number, number][]> = {};
-	for (const [date, entries] of Object.entries(intake)) {
+	const recentIntake = filterIntakeToRecentDays(intake, 7);
+	for (const [date, entries] of Object.entries(recentIntake)) {
 		i[date] = entries.map((e: Entry) => [e.calories, e.protein]);
 	}
 	return {
@@ -100,6 +115,7 @@ function parseCompactPayload(raw: unknown): MigrateData {
 	if (!Number.isFinite(a) || (c !== null && !Number.isFinite(c)) || (p !== null && !Number.isFinite(p)))
 		throw new Error('Invalid payload');
 	if (g !== undefined && !Number.isFinite(g)) throw new Error('Invalid payload');
+	const proteinGoal = typeof g === 'number' && g > 0 ? g : 160;
 
 	return {
 		intake,
@@ -107,7 +123,7 @@ function parseCompactPayload(raw: unknown): MigrateData {
 			dailyAllowance: a,
 			currentWeight: c ?? null,
 			previousWeight: p ?? null,
-			proteinGoal: Number.isFinite(g) && g > 0 ? g : 160
+			proteinGoal
 		}
 	};
 }

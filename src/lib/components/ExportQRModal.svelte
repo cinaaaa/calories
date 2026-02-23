@@ -50,7 +50,7 @@
 				{#if loading}
 					<p class="message">Preparing QR code…</p>
 				{:else if tooLarge}
-					<p class="message message-error">Too much data for one QR. Try removing some older entries.</p>
+					<p class="message message-error">Too much data for one QR. Try again with fewer entries.</p>
 				{:else if qrDataUrl}
 					<p class="hint">Show this code on your other device, then use Import there to load the data.</p>
 					<div class="qr-wrap">
